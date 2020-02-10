@@ -1,7 +1,8 @@
+import Tkinter as tk
 from operator import attrgetter
+import numpy as np
 
-MAX_X = 15
-MAX_Y = 15
+GRID_SIZE = 10
 
 class Node():
 
@@ -15,9 +16,12 @@ class Node():
     def __eq__(self, other):
         return self.position == other.position
 
-
+####################################################################
 
 def astar(maze, start, end):
+
+    for row in maze:
+        print(row)
 
     start_node = Node(None, start)
     end_node = Node(None, end)
@@ -91,6 +95,70 @@ def astar(maze, start, end):
             # Add the child node to the open nodes list
             open_nodes.append(child_node)
 
+####################################################################
+
+# Clicking a box
+def on_click(i,j,event):
+    color = "black"
+    event.widget.config(bg=color)
+    board[i][j] = color
+    maze[i][j] = 1
+
+####################################################################
+
+# Clicking find path
+def begin():
+    drawgrid()
+    print("finding path")
+    path = astar(maze, start, end)
+
+####################################################################
+
+    print("plotting path")
+
+    for i,row in enumerate(board):
+        for j,column in enumerate(row):
+
+            # Path color
+            for x,y in path:
+                if i == x and j == y:
+                    L = tk.Label(gridframe,width=2,bg='blue', borderwidth=2)
+        
+            # Place the label
+            L.grid(row=i,column=j)
+            L.bind('<Button-1>',lambda e,i=i,j=j: on_click(i,j,e))
+
+####################################################################
+
+def drawgrid():
+
+    for widget in gridframe.winfo_children():
+        widget.destroy()
+
+    for i,row in enumerate(maze):
+        for j,column in enumerate(row):
+
+            # Default color
+            L = tk.Label(gridframe, width=2, bg='gray', borderwidth=2)
+
+            # Start and end color
+            if i == start[0] and j == start[1]:
+                L = tk.Label(gridframe,width=2,bg='green', borderwidth=2) 
+            elif i == end[0] and j == end[1]:
+                L = tk.Label(gridframe,width=2,bg='red', borderwidth=2)
+
+            # Place the label
+            L.grid(row=i,column=j)
+            L.bind('<Button-1>',lambda e,i=i,j=j: on_click(i,j,e))
+
+####################################################################
+
+def reset():
+
+    board = [[None]*GRID_SIZE for _ in range(GRID_SIZE)]
+    maze = np.zeros([GRID_SIZE, GRID_SIZE])
+
+####################################################################
 
 # start_input = input("Enter the starting coordinate 'x y': ")
 # coords = [int(s) for s in start_input.split() if s.isdigit()]
@@ -102,19 +170,30 @@ def astar(maze, start, end):
 # start = Node(1,1)
 # end = Node(10,10)
 
-maze =     [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+####################################################################
 
+board = [[None]*GRID_SIZE for _ in range(GRID_SIZE)]
+maze = np.zeros([GRID_SIZE, GRID_SIZE])
 start = (0,0)
 end = (7,6)
 
-path = astar(maze, start, end)
-print(path)
+
+# Create the GUI
+root = tk.Tk()
+
+topframe = tk.Frame(root)
+topframe.pack(side="top")
+
+gridframe = tk.Frame(root)
+gridframe.pack(side="bottom")
+
+begin_button = tk.Button(topframe, text="Find path", command=begin)
+begin_button.pack()
+
+reset_button = tk.Button(topframe, text="Reset", command=reset)
+reset_button.pack()
+
+drawgrid()
+
+
+root.mainloop()
